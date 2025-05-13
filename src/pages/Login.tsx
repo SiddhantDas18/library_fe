@@ -19,7 +19,13 @@ export default function Login() {
             const data = await response.json()
             if (data.token) {
                 localStorage.setItem('token', data.token)
-                navigate('/')
+                localStorage.setItem('role', data.role) // Store the role
+                // Redirect based on role
+                if (data.role === 'admin') {
+                    navigate('/admin')
+                } else {
+                    navigate('/')
+                }
             } else {
                 alert(data.msg)
             }

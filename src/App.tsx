@@ -4,12 +4,24 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import AdminSignup from './pages/AdminSignup'
 import Books from './pages/Books'
-import MyBooks from './pages/Books'
+import MyBooks from './pages/MyBooks'
+import AdminDashboard from './pages/AdminDashboard'
 import './App.css'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('token')
     return token ? children : <Navigate to="/login" />
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+    const token = localStorage.getItem('token')
+    const role = localStorage.getItem('role')
+    
+    if (!token || role !== 'admin') {
+        console.log('Access denied:', { token: !!token, role }) // Debug log
+        return <Navigate to="/login" />
+    }
+    return children
 }
 
 function App() {
@@ -35,6 +47,14 @@ function App() {
                             <PrivateRoute>
                                 <MyBooks />
                             </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="admin"
+                        element={
+                            <AdminRoute>
+                                <AdminDashboard />
+                            </AdminRoute>
                         }
                     />
                 </Route>
