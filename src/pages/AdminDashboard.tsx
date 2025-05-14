@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react'
 import Toast from '../components/Toast'
 import AddBookPopup from '../components/AddBookPopup'
-
-interface User {
-    id: number
-    username: string
-    email: string
-    role: string
-}
+import BorrowBookPopup from '../components/BorrowBookPopup'
 
 interface BorrowedBook {
     id: number
@@ -22,7 +16,6 @@ interface BorrowedBook {
 }
 
 export default function AdminDashboard() {
-    const [users, setUsers] = useState<User[]>([])
     const [transactions, setTransactions] = useState([])
     const [userId, setUserId] = useState('')
     const [borrowedBooks, setBorrowedBooks] = useState<BorrowedBook[]>([])
@@ -33,28 +26,57 @@ export default function AdminDashboard() {
         type: 'info' as 'success' | 'error' | 'info'
     })
     const [isAddBookOpen, setIsAddBookOpen] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [searchResults, setSearchResults] = useState<any[]>([])
+    const [selectedBook, setSelectedBook] = useState<any>(null)
+    const [isBorrowPopupOpen, setIsBorrowPopupOpen] = useState(false)
 
-    useEffect(() => {
-        fetchUsers()
-        const interval = setInterval(fetchTransactions, 10000)
-        return () => clearInterval(interval)
-    }, [])
-
-    const fetchUsers = async () => {
+    const handleSearch = async () => {
+        if (!searchTerm.trim()) return
+        
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/users`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/searchBook/${searchTerm}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             })
             const data = await response.json()
-            if (data.users) {
-                setUsers(data.users)
+            if (data.books) {
+                setSearchResults(data.books)
             }
         } catch (error) {
             console.error('Error:', error)
+            showToast('Failed to search books', 'error')
         }
     }
+
+    const handleBorrow = async (userId: string) => {
+        if (!selectedBook) return
+        
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/borrow/${selectedBook.id}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ customer_id: parseInt(userId) })
+            })
+            const data = await response.json()
+            showToast(data.msg, response.ok ? 'success' : 'error')
+            if (response.ok) {
+                handleSearch() // Refresh search results
+            }
+        } catch (error) {
+            console.error('Error:', error)
+            showToast('Failed to borrow book', 'error')
+        }
+    }
+
+    useEffect(() => {
+        const interval = setInterval(fetchTransactions, 10000)
+        return () => clearInterval(interval)
+    }, [])
 
     const fetchTransactions = async () => {
         try {
@@ -193,18 +215,15 @@ export default function AdminDashboard() {
                 onClose={() => setIsAddBookOpen(false)}
                 onAdd={handleAddBook}
             />
-            <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Users</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {users.map(user => (
-                        <div key={user.id} className="p-4 bg-white rounded-lg shadow">
-                            <p className="font-bold">{user.username}</p>
-                            <p className="text-gray-600">{user.email}</p>
-                            <p className="text-gray-600">Role: {user.role}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
+
+            <BorrowBookPopup
+                isOpen={isBorrowPopupOpen}
+                onClose={() => setIsBorrowPopupOpen(false)}
+                onBorrow={handleBorrow}
+                bookTitle={selectedBook?.title || ''}
+            />
+
+            {/* Remove the Users section */}
 
             <div className="space-y-4">
                 <h2 className="text-2xl font-bold">Recent Transactions</h2>
@@ -277,6 +296,53 @@ export default function AdminDashboard() {
                             </div>
                         ))}
                     </div>
+                )}
+            </div>
+            <div className="space-y-4">
+                <h2 className="text-2xl font-bold">Search Books</h2>
+                <div className="flex gap-4">
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search books by title..."
+                        className="flex-1 px-4 py-2 border rounded-md"
+                    />
+                    <button
+                        onClick={handleSearch}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                        Search
+                    </button>
+                </div>
+
+                {searchTerm.trim() && searchResults.length === 0 ? (
+                    <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600">
+                        No books found matching "{searchTerm}"
+                    </div>
+                ) : (
+                    searchResults.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {searchResults.map(book => (
+                                <div key={book.id} className="p-4 bg-white rounded-lg shadow">
+                                    <h3 className="font-bold">{book.title}</h3>
+                                    <p className="text-gray-600">Author: {book.author}</p>
+                                    <p className="text-gray-600">Available Copies: {book.Copies_available}</p>
+                                    {book.Copies_available > 0 && (
+                                        <button
+                                            onClick={() => {
+                                                setSelectedBook(book)
+                                                setIsBorrowPopupOpen(true)
+                                            }}
+                                            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                        >
+                                            Borrow
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )
                 )}
             </div>
         </div>
