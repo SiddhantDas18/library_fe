@@ -210,6 +210,133 @@ export default function AdminDashboard() {
                 </button>
             </div>
 
+            <div className="space-y-8">
+                {/* Search Users Section */}
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold">Check Borrowed Books</h2>
+                    <div className="flex gap-4">
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="\d*"
+                            value={userId}
+                            onChange={handleUserIdChange}
+                            placeholder="Enter User ID (numbers only)"
+                            className="px-4 py-2 border rounded-md"
+                        />
+                        <button
+                            onClick={checkBorrowedBooks}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+                            Check Books
+                        </button>
+                    </div>
+
+                    {error && (
+                        <div className="p-4 bg-red-50 text-red-600 rounded-md">
+                            {error}
+                        </div>
+                    )}
+
+                    {borrowedBooks.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {borrowedBooks.map(book => (
+                                <div key={book.id} className="p-4 bg-white rounded-lg shadow">
+                                    <h3 className="font-bold">{book.books.title}</h3>
+                                    <p className="text-gray-600">Author: {book.books.author}</p>
+                                    <p className="text-gray-600">Borrowed: {new Date(book.borrowed_date).toLocaleDateString()}</p>
+                                    <p className="text-gray-600">Return by: {new Date(book.return_date).toLocaleDateString()}</p>
+                                    <button
+                                        onClick={() => handleReturn(book.book_id)}
+                                        className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                                    >
+                                        Return Book
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Search Books Section */}
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold">Search Books</h2>
+                    <div className="flex gap-4">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search books by title..."
+                            className="flex-1 px-4 py-2 border rounded-md"
+                        />
+                        <button
+                            onClick={handleSearch}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+                            Search
+                        </button>
+                    </div>
+
+                    {searchTerm.trim() && searchResults.length === 0 ? (
+                        <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600">
+                            No books found matching "{searchTerm}"
+                        </div>
+                    ) : (
+                        searchResults.length > 0 && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {searchResults.map(book => (
+                                    <div key={book.id} className="p-4 bg-white rounded-lg shadow">
+                                        <h3 className="font-bold">{book.title}</h3>
+                                        <p className="text-gray-600">Author: {book.author}</p>
+                                        <p className="text-gray-600">Available Copies: {book.Copies_available}</p>
+                                        {book.Copies_available > 0 && (
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedBook(book)
+                                                    setIsBorrowPopupOpen(true)
+                                                }}
+                                                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                            >
+                                                Borrow
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )
+                    )}
+                </div>
+
+                {/* Transactions Section */}
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold">Recent Transactions</h2>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full bg-white">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="p-4">Transaction ID</th>
+                                    <th className="p-4">User ID</th>
+                                    <th className="p-4">Book ID</th>
+                                    <th className="p-4">Amount</th>
+                                    <th className="p-4">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {transactions.map((transaction: any) => (
+                                    <tr key={transaction.id} className="border-t">
+                                        <td className="p-4">{transaction.id}</td>
+                                        <td className="p-4">{transaction.user_id}</td>
+                                        <td className="p-4">{transaction.book_id}</td>
+                                        <td className="p-4">${transaction.amount}</td>
+                                        <td className="p-4">{new Date(transaction.Transaction_Date).toLocaleDateString()}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <AddBookPopup
                 isOpen={isAddBookOpen}
                 onClose={() => setIsAddBookOpen(false)}
@@ -222,129 +349,6 @@ export default function AdminDashboard() {
                 onBorrow={handleBorrow}
                 bookTitle={selectedBook?.title || ''}
             />
-
-            {/* Remove the Users section */}
-
-            <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Recent Transactions</h2>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="p-4">Transaction ID</th>
-                                <th className="p-4">User ID</th>
-                                <th className="p-4">Book ID</th>
-                                <th className="p-4">Amount</th>
-                                <th className="p-4">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {transactions.map((transaction: any) => (
-                                <tr key={transaction.id} className="border-t">
-                                    <td className="p-4">{transaction.id}</td>
-                                    <td className="p-4">{transaction.user_id}</td>
-                                    <td className="p-4">{transaction.book_id}</td>
-                                    <td className="p-4">${transaction.amount}</td>
-                                    <td className="p-4">{new Date(transaction.Transaction_Date).toLocaleDateString()}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Check Borrowed Books</h2>
-                <div className="flex gap-4">
-                    <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="\d*"
-                        value={userId}
-                        onChange={handleUserIdChange}
-                        placeholder="Enter User ID (numbers only)"
-                        className="px-4 py-2 border rounded-md"
-                    />
-                    <button
-                        onClick={checkBorrowedBooks}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                        Check Books
-                    </button>
-                </div>
-
-                {error && (
-                    <div className="p-4 bg-red-50 text-red-600 rounded-md">
-                        {error}
-                    </div>
-                )}
-
-                {borrowedBooks.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {borrowedBooks.map(book => (
-                            <div key={book.id} className="p-4 bg-white rounded-lg shadow">
-                                <h3 className="font-bold">{book.books.title}</h3>
-                                <p className="text-gray-600">Author: {book.books.author}</p>
-                                <p className="text-gray-600">Borrowed: {new Date(book.borrowed_date).toLocaleDateString()}</p>
-                                <p className="text-gray-600">Return by: {new Date(book.return_date).toLocaleDateString()}</p>
-                                <button
-                                    onClick={() => handleReturn(book.book_id)}
-                                    className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                                >
-                                    Return Book
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-            <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Search Books</h2>
-                <div className="flex gap-4">
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search books by title..."
-                        className="flex-1 px-4 py-2 border rounded-md"
-                    />
-                    <button
-                        onClick={handleSearch}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                        Search
-                    </button>
-                </div>
-
-                {searchTerm.trim() && searchResults.length === 0 ? (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600">
-                        No books found matching "{searchTerm}"
-                    </div>
-                ) : (
-                    searchResults.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {searchResults.map(book => (
-                                <div key={book.id} className="p-4 bg-white rounded-lg shadow">
-                                    <h3 className="font-bold">{book.title}</h3>
-                                    <p className="text-gray-600">Author: {book.author}</p>
-                                    <p className="text-gray-600">Available Copies: {book.Copies_available}</p>
-                                    {book.Copies_available > 0 && (
-                                        <button
-                                            onClick={() => {
-                                                setSelectedBook(book)
-                                                setIsBorrowPopupOpen(true)
-                                            }}
-                                            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                        >
-                                            Borrow
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )
-                )}
-            </div>
         </div>
     )
 }
