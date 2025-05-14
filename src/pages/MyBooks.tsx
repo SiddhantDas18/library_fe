@@ -82,7 +82,7 @@ export default function MyBooks() {
                 )}
             </div>
 
-            {/* Borrowing History Section */}
+
             <div className="space-y-6">
                 <h2 className="text-2xl font-bold mb-6">Borrowing History</h2>
                 {borrowingHistory.length === 0 ? (
