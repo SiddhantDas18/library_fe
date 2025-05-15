@@ -10,32 +10,33 @@ interface ToastProps {
 export default function Toast({ message, type, show, onClose }: ToastProps) {
     useEffect(() => {
         if (show) {
-            const timer = setTimeout(() => {
-                onClose()
-            }, 3000)
+            const timer = setTimeout(onClose, 3000)
             return () => clearTimeout(timer)
         }
     }, [show, onClose])
 
     if (!show) return null
 
-    const bgColor = {
-        success: 'bg-green-500',
-        error: 'bg-red-500',
-        info: 'bg-blue-500'
-    }[type]
+    const colors = {
+        success: 'bg-green-400',
+        error: 'bg-red-400',
+        info: 'bg-blue-400'
+    }
 
     return (
-        <div className={`fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 transform ${show ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}>
-            <div className="flex items-center">
-                <span>{message}</span>
-                <button 
-                    onClick={onClose}
-                    className="ml-4 text-white hover:text-gray-200"
-                >
-                    ×
-                </button>
-            </div>
+        <div 
+            className={`
+                fixed top-4 right-4 
+                ${colors[type]} 
+                px-4 py-2 
+                rounded 
+                text-white text-sm 
+                shadow-sm
+                transform transition-all duration-200 ease-in-out
+                ${show ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}
+            `}
+        >
+            {message}
         </div>
     )
 }
