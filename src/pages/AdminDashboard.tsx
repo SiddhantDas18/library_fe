@@ -65,7 +65,7 @@ export default function AdminDashboard() {
             const data = await response.json()
             showToast(data.msg, response.ok ? 'success' : 'error')
             if (response.ok) {
-                handleSearch() // Refresh search results
+                handleSearch() 
             }
         } catch (error) {
             console.error('Error:', error)
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
 
     const handleUserIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
-        // Only allow numbers
+
         if (/^\d*$/.test(value)) {
             setUserId(value)
         }
@@ -171,17 +171,34 @@ export default function AdminDashboard() {
     const handleAddBook = async (bookData: {
         title: string
         author: string
-        Copies_available: number
-        description: string
+        isbn: string
+        published_year: string
+        copies: number
     }) => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/books`, {
+            if (!bookData.published_year) {
+                showToast('Published year is required', 'error')
+                return
+            }
+            
+            if (isNaN(bookData.copies)) {
+                showToast('Copies available must be a valid number', 'error')
+                return
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/addBook`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(bookData)
+                body: JSON.stringify({
+                    title: bookData.title,
+                    author: bookData.author,
+                    ISBN: bookData.isbn,
+                    published_year: bookData.published_year.toString().trim(),
+                    copies: Math.max(0, Math.floor(Number(bookData.copies)))
+                })
             })
             const data = await response.json()
             showToast(data.msg, response.ok ? 'success' : 'error')
@@ -211,7 +228,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-8">
-                {/* Search Users Section */}
+
                 <div className="space-y-4">
                     <h2 className="text-2xl font-bold">Check Borrowed Books</h2>
                     <div className="flex gap-4">

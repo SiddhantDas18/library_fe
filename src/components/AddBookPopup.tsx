@@ -6,8 +6,9 @@ interface AddBookPopupProps {
     onAdd: (bookData: {
         title: string
         author: string
-        Copies_available: number
-        description: string
+        isbn: string
+        published_year: string
+        copies: number
     }) => void
 }
 
@@ -15,18 +16,30 @@ export default function AddBookPopup({ isOpen, onClose, onAdd }: AddBookPopupPro
     const [bookData, setBookData] = useState({
         title: '',
         author: '',
-        Copies_available: 1,
-        description: ''
+        isbn: '',
+        published_year: '',
+        copies: 1
     })
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        onAdd(bookData)
+        const trimmedIsbn = bookData.isbn.trim()
+        if (!trimmedIsbn) {
+            return // Don't submit if ISBN is empty or only whitespace
+        }
+        const formattedData = {
+            ...bookData,
+            isbn: trimmedIsbn, // Use the trimmed ISBN
+            published_year: bookData.published_year.toString(),
+            copies: Number(bookData.copies)
+        }
+        onAdd(formattedData)
         setBookData({
             title: '',
             author: '',
-            Copies_available: 1,
-            description: ''
+            isbn: '',
+            published_year: '',
+            copies: 1
         })
         onClose()
     }
@@ -67,6 +80,7 @@ export default function AddBookPopup({ isOpen, onClose, onAdd }: AddBookPopupPro
                             placeholder="Enter book title"
                         />
                     </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Author</label>
                         <input
@@ -78,29 +92,43 @@ export default function AddBookPopup({ isOpen, onClose, onAdd }: AddBookPopupPro
                             placeholder="Enter author name"
                         />
                     </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">ISBN</label>
+                        <input
+                            type="text"
+                            required
+                            value={bookData.isbn}
+                            onChange={(e) => setBookData(prev => ({ ...prev, isbn: e.target.value }))}
+                            className="mt-1 block w-full px-4 py-3 rounded-lg border-2 border-gray-300 shadow-sm focus:border-slate-500 focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 transition-all duration-200 text-base"
+                            placeholder="Enter ISBN"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Published Year</label>
+                        <input
+                            type="text"
+                            required
+                            value={bookData.published_year}
+                            onChange={(e) => setBookData(prev => ({ ...prev, published_year: e.target.value }))}
+                            className="mt-1 block w-full px-4 py-3 rounded-lg border-2 border-gray-300 shadow-sm focus:border-slate-500 focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 transition-all duration-200 text-base"
+                            placeholder="Enter published year"
+                        />
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Copies Available</label>
                         <input
                             type="number"
-                            min="1"
                             required
-                            value={bookData.Copies_available}
-                            onChange={(e) => setBookData(prev => ({ ...prev, Copies_available: parseInt(e.target.value) }))}
+                            value={bookData.copies}
+                            onChange={(e) => setBookData(prev => ({ ...prev, copies: Number(e.target.value) }))}
                             className="mt-1 block w-full px-4 py-3 rounded-lg border-2 border-gray-300 shadow-sm focus:border-slate-500 focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 transition-all duration-200 text-base"
                             placeholder="Enter number of copies"
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                        <textarea
-                            required
-                            value={bookData.description}
-                            onChange={(e) => setBookData(prev => ({ ...prev, description: e.target.value }))}
-                            className="mt-1 block w-full px-4 py-3 rounded-lg border-2 border-gray-300 shadow-sm focus:border-slate-500 focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 transition-all duration-200 text-base"
-                            rows={4}
-                            placeholder="Enter book description"
-                        />
-                    </div>
+                    
                     <div className="flex justify-end gap-4">
                         <button
                             type="button"
