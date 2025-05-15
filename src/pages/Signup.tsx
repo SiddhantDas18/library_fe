@@ -29,7 +29,7 @@ export default function Signup() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center ">
             <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
                 <h2 className="text-center text-3xl font-bold">Sign Up</h2>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -65,7 +65,7 @@ export default function Signup() {
                     </div>
                     <button
                         type="submit"
-                        className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        className="w-full py-2 px-4 bg-slate-600 text-white rounded-md hover:bg-slate-700"
                     >
                         Sign Up
                     </button>
